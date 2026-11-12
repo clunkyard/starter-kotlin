@@ -98,24 +98,8 @@ class Bot : Robot() {
             val climb = if (zone.shape() == Shape.SPHERE) angles().elevationTo(position, zone.center()) else 0.0
             drive().set(0.8, angles().clamp(angles().angleDiff(angles().bearingTo(position, zone.center()), self.heading()) / 30), angles().clamp((climb - self.pitch()) / 30))
         }
-        // The arena's rate calibration only; safe to delete.
-        val work = raw().number("state.calibration.work").orElse(0.0).toLong()
-        if (work > 0) status().set("WORK", calibrationWork(work, clock().tick().toLong()).toDouble())
     }
 }
 
-// The calibration kernel, xorshift-sqrt v1: work rounds of a 64-bit
-// xorshift and a square-root sum.
-fun calibrationWork(work: Long, tick: Long): Long {
-    var x = 88172645463325252L xor tick
-    var sum = 0.0
-    for (i in 0 until work) {
-        x = x xor (x shl 13)
-        x = x xor (x ushr 7)
-        x = x xor (x shl 17)
-        sum += sqrt((x ushr 11).toDouble())
-    }
-    return (floor(sum).toLong() + (x ushr 40)) % 1000000
-}
 
 fun main() = Clunkyard.run(Bot())
